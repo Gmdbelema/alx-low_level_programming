@@ -1,181 +1,99 @@
 #include <stdlib.h>
 #include <stdio.h>
-
-void *_calloc(unsigned int nmemb, unsigned int size);
-int _strdigit(char *s);
-void _puts(char *s);
-void rev_num_str(int start, int end, char *ns);
-int _strlen(char *s);
-char *strmul(char *a, char *b);
+#include "main.h"
 
 /**
- * _calloc - allocate (`size' * `nmemb') bytes and set to 0
- * @nmemb: number of elements
- * @size: number of bytes per element
+ * is_digit - checks if a string contains a non-digit char
+ * @s: string to be evaluated
  *
- * Return: pointer to memory, or NULL if `nmemb' or `size' is 0 or malloc fail
+ * Return: 0 if a non-digit is found, 1 otherwise
  */
-void *_calloc(unsigned int nmemb, unsigned int size)
+int is_digit(char *s)
 {
-	unsigned int i;
-	char *p;
+	int i = 0;
 
-	if (size == 0 || nmemb == 0)
-		return (NULL);
-	p = malloc(nmemb * size);
-	if (p == NULL)
-		return (NULL);
-	for (i = 0; i < nmemb * size; ++i)
-		p[i] = 0;
-	return (p);
-}
-
-/**
- * _strdigit - check if string `s' is composed only of digits
- * @s: string to check
- *
- * Return: 1 if true, 0 if false
- */
-int _strdigit(char *s)
-{
-	if (*s == '-' || *s == '+')
-		++s;
-	while (*s)
+	while (s[i])
 	{
-		if (*s < '0' || *s > '9')
-		{
+		if (s[i] < '0' || s[i] > '9')
 			return (0);
-		}
-		++s;
+		i++;
 	}
 	return (1);
 }
 
 /**
- * _puts - print string `s'
- * @s: string to print
- */
-void _puts(char *s)
-{
-	while (*s)
-		putchar(*(s++));
-}
-
-/**
- * rev_num_str - reverse a number string up to trailing zeros
- * @start: beginning of number
- * @end: end of number
- * @ns: string containing number
- */
-void rev_num_str(int start, int end, char *ns)
-{
-	int i, j;
-	char tmp;
-
-	while (ns[end] == 0 && end != start)
-		--end;
-	for (i = start, j = end; i <= j; ++i, --j)
-	{
-		tmp = ns[i] + '0';
-		ns[i] = ns[j] + '0';
-		ns[j] = tmp;
-	}
-}
-
-/**
- * _strlen - calculate length of string `s'
- * @s: string to get length of
+ * _strlen - returns the length of a string
+ * @s: string to evaluate
  *
- * Return: length of string
+ * Return: the length of the string
  */
 int _strlen(char *s)
 {
-	int i;
+	int i = 0;
 
-	for (i = 0; s[i]; ++i)
-		;
+	while (s[i] != '\0')
+	{
+		i++;
+	}
 	return (i);
 }
 
 /**
- * strmul - multply two numbers as strings
- * @a: first number
- * @b: second number
- *
- * Return: pointer to result on success, or NULL on failure
+ * errors - handles errors for main
  */
-char *strmul(char *a, char *b)
+void errors(void)
 {
-	int la, lb, i, j, k, l, neg = 0;
-	char *result;
-	char mul, mul_carry, sum, sum_carry;
-
-	if (*a == '-')
-	{
-		neg ^= 1;
-		++a;
-	}
-	if (*b == '-')
-	{
-		neg ^= 1;
-		++b;
-	}
-	la = _strlen(a);
-	lb = _strlen(b);
-	result = _calloc(la + lb + 1 + neg, sizeof(char));
-	if (result == NULL)
-		return (NULL);
-	if (neg)
-		result[0] = '-';
-	for (i = lb - 1, l = neg; i >= 0; --i, ++l)
-	{
-		mul_carry = 0;
-		sum_carry = 0;
-		for (j = la - 1, k = l; j >= 0; --j, ++k)
-		{
-			mul = (a[j] - '0') * (b[i] - '0') + mul_carry;
-			mul_carry = mul / 10;
-			mul %= 10;
-			sum = result[k] + mul + sum_carry;
-			sum_carry = sum / 10;
-			sum %= 10;
-			result[k] = sum;
-		}
-		result[k] = sum_carry + mul_carry;
-	}
-	rev_num_str(neg, k, result);
-	return (result);
+	printf("Error\n");
+	exit(98);
 }
 
 /**
- * main - multiply two numbers from the command line and print the result
- * @argc: argument count
- * @argv: argument list
+ * main - multiplies two positive numbers
+ * @argc: number of arguments
+ * @argv: array of arguments
  *
- * Return: 0 if successful, 98 if failure
+ * Return: always 0 (Success)
  */
 int main(int argc, char *argv[])
 {
-	char *result;
+	char *s1, *s2;
+	int len1, len2, len, i, carry, digit1, digit2, *result, a = 0;
 
-	if (argc != 3)
+	s1 = argv[1], s2 = argv[2];
+	if (argc != 3 || !is_digit(s1) || !is_digit(s2))
+		errors();
+	len1 = _strlen(s1);
+	len2 = _strlen(s2);
+	len = len1 + len2 + 1;
+	result = malloc(sizeof(int) * len);
+	if (!result)
+		return (1);
+	for (i = 0; i <= len1 + len2; i++)
+		result[i] = 0;
+	for (len1 = len1 - 1; len1 >= 0; len1--)
 	{
-		_puts("Error\n");
-		exit(98);
+		digit1 = s1[len1] - '0';
+		carry = 0;
+		for (len2 = _strlen(s2) - 1; len2 >= 0; len2--)
+		{
+			digit2 = s2[len2] - '0';
+			carry += result[len1 + len2 + 1] + (digit1 * digit2);
+			result[len1 + len2 + 1] = carry % 10;
+			carry /= 10;
+		}
+		if (carry > 0)
+			result[len1 + len2 + 1] += carry;
 	}
-	if (!_strdigit(argv[1]) || !_strdigit(argv[2]))
+	for (i = 0; i < len - 1; i++)
 	{
-		_puts("Error\n");
-		exit(98);
+		if (result[i])
+			a = 1;
+		if (a)
+			_putchar(result[i] + '0');
 	}
-	result = strmul(argv[1], argv[2]);
-	if (result == NULL)
-	{
-		_puts("Error\n");
-		exit(98);
-	}
-	_puts(result);
-	putchar('\n');
+	if (!a)
+		_putchar('0');
+	_putchar('\n');
 	free(result);
-	exit(EXIT_SUCCESS);
+	return (0);
 }
